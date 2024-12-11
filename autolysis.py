@@ -1,16 +1,17 @@
-
 import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import requests
 import json
+import numpy as np  # Importing numpy
+from tabulate import tabulate  # Importing tabulate for table formatting
+from scipy import stats  # Importing scipy for any advanced statistical functions
+from datetime import datetime  # Importing datetime to generate unique filenames
 
-# Prompt the user for their API token and the folder location
-api_proxy_token = input("Please enter your API proxy token: ")
-folder_path = input("Please enter the folder path where the CSV files are located: ")
-
-api_proxy_base_url = "https://aiproxy.sanand.workers.dev/openai/v1"
+# Use your token directly
+api_proxy_token = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZHMxMDAwMDIzQGRzLnN0dWR5LmlpdG0uYWMuaW4ifQ.VMgtIn9WJmqsIyfZ9k0Y69-a-UaK0XjB8Cgj5MsuC8Y"
+api_proxy_base_url = "https://aiproxy.sanand.workers.dev/"
 
 def read_csv(filename):
     """Read the CSV file and return a DataFrame."""
@@ -38,16 +39,16 @@ def analyze_data(df):
 def visualize_data(df, output_prefix):
     """Generate visualizations for the dataset."""
     charts = []
-
+    
     # Example 1: Correlation Heatmap (if numeric data exists)
     numeric_columns = df.select_dtypes(include=["number"]).columns
     if len(numeric_columns) > 0:
         plt.figure(figsize=(14, 12))  # Increased figure size for clarity
         heatmap = sns.heatmap(
-            df[numeric_columns].corr(),
-            annot=True,
-            cmap="coolwarm",
-            fmt=".2f",
+            df[numeric_columns].corr(), 
+            annot=True, 
+            cmap="coolwarm", 
+            fmt=".2f", 
             cbar_kws={'shrink': 0.8}
         )
         heatmap.set_title("Correlation Heatmap", fontsize=16, pad=20)
@@ -56,7 +57,7 @@ def visualize_data(df, output_prefix):
         plt.xticks(fontsize=12, rotation=45, ha="right")  # Rotate and align x-axis labels
         plt.yticks(fontsize=12)
         plt.tight_layout(pad=3.0)  # Adjust layout
-        heatmap_file = f"{output_prefix}_heatmap.png"
+        heatmap_file = generate_unique_filename(f"{output_prefix}_heatmap.png")
         plt.savefig(heatmap_file, dpi=300)  # Save high-resolution image
         charts.append(heatmap_file)
         plt.close()
@@ -73,7 +74,7 @@ def visualize_data(df, output_prefix):
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
         plt.tight_layout(pad=3.0)  # Adjust layout
-        barplot_file = f"{output_prefix}_barplot.png"
+        barplot_file = generate_unique_filename(f"{output_prefix}_barplot.png")
         plt.savefig(barplot_file, dpi=300)
         charts.append(barplot_file)
         plt.close()
@@ -118,43 +119,63 @@ def save_markdown(story, charts, output_file):
         for chart in charts:
             f.write(f"![Chart](./{chart})\n")
 
+def save_table(df, output_file):
+    """Save the dataframe as a formatted table in the README.md file."""
+    table = tabulate(df.head(), headers='keys', tablefmt='pipe', showindex=False)
+    with open(output_file, "a") as f:
+        f.write("\n## Sample Data\n\n")
+        f.write(table + "\n")
+
+def generate_unique_filename(filename):
+    """Generate a unique filename by appending a timestamp."""
+    if os.path.exists(filename):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename, extension = os.path.splitext(filename)
+        filename = f"{filename}_{timestamp}{extension}"
+    return filename
+
 def main():
+    # Define the folder path
+    folder_path = r"C:\Users\Admin\Downloads\csv files"
+
     # Change to the specified folder
     try:
         os.chdir(folder_path)
     except Exception as e:
         print(f"Error accessing folder {folder_path}: {e}")
         return
-
+    
     # Automatically process all CSV files in the folder
     csv_files = [f for f in os.listdir() if f.endswith('.csv')]
-
+    
     if not csv_files:
         print("No CSV files found in the directory.")
         return
-
+    
     for filename in csv_files:
         print(f"Processing {filename}...")
 
         # Load dataset
         df = read_csv(filename)
-
+        
         # Analyze dataset
         analysis = analyze_data(df)
-
+        
         # Visualize data
         output_prefix = filename.split(".")[0]
         charts = visualize_data(df, output_prefix)
-
+        
         # Narrate story
         story = narrate_story(analysis, charts, filename)
-
+        
         # Save README.md
-        readme_file = f"README_{output_prefix}.md"
+        readme_file = generate_unique_filename(f"README_{output_prefix}.md")
         save_markdown(story, charts, readme_file)
+        
+        # Save Sample Data Table
+        save_table(df, readme_file)
+
         print(f"Analysis completed for {filename}. Check {readme_file} and charts.")
 
 if __name__ == "__main__":
     main()
-
-!mkdir new_folder

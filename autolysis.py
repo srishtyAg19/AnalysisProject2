@@ -4,27 +4,51 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import requests
 import json
-import numpy as np  # Importing numpy
-from tabulate import tabulate  # Importing tabulate for table formatting
-from scipy import stats  # Importing scipy for any advanced statistical functions
-from datetime import datetime  # Importing datetime to generate unique filenames
+import numpy as np
+from tabulate import tabulate
+from scipy import stats
+from datetime import datetime
+from dotenv import load_dotenv
 
-# Use your token directly
-api_proxy_token = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZHMxMDAwMDIzQGRzLnN0dWR5LmlpdG0uYWMuaW4ifQ.VMgtIn9WJmqsIyfZ9k0Y69-a-UaK0XjB8Cgj5MsuC8Y"
+# Define the folder path (update if needed)
+folder_path = r"/content/csv_files"  
+
+# Define the .env file path
+dotenv_path = os.path.join(folder_path, "myfile.env")
+
+# Check if the .env file exists
+if not os.path.exists(dotenv_path):
+    print("Files in the directory:", os.listdir(folder_path))
+    raise FileNotFoundError(f"The .env file was not found at {dotenv_path}.")
+
+# Load the .env file
+load_dotenv(dotenv_path, encoding='utf-16')
+
+# Access the token from the .env file
+api_proxy_token = os.getenv("AI_PROXY")
+
+if not api_proxy_token:
+    raise ValueError("AI_PROXY token not found in the .env file.")
+
+print("AI_PROXY token loaded successfully.")
+
+# Base URL for the API
 api_proxy_base_url = "https://aiproxy.sanand.workers.dev/"
 
 def read_csv(filename):
-    """Read the CSV file and return a DataFrame."""
-    try:
-        df = pd.read_csv(filename, encoding="utf-8")
-        print(f"Dataset loaded: {filename}")
-        return df
-    except UnicodeDecodeError:
-        print(f"Encoding issue detected with {filename}. Trying 'latin1'.")
-        return pd.read_csv(filename, encoding="latin1")
-    except Exception as e:
-        print(f"Error loading {filename}: {e}")
-        exit()
+    """Read the CSV file and return a DataFrame, trying different encodings."""
+    for encoding in ['utf-8', 'latin1', 'utf-16']: 
+        try:
+            df = pd.read_csv(filename, encoding=encoding)
+            print(f"Dataset loaded with {encoding}: {filename}")
+            return df
+        except UnicodeDecodeError:
+            print(f"Encoding {encoding} failed for {filename}. Trying next encoding...")
+        except Exception as e:
+            print(f"Error loading {filename}: {e}")
+            exit()
+    print(f"Could not load {filename} with any of the tried encodings.")
+    exit()
 
 def analyze_data(df):
     """Perform basic analysis on the dataset."""
@@ -40,44 +64,30 @@ def visualize_data(df, output_prefix):
     """Generate visualizations for the dataset."""
     charts = []
     
-    # Example 1: Correlation Heatmap (if numeric data exists)
+    # Correlation Heatmap (if numeric data exists)
     numeric_columns = df.select_dtypes(include=["number"]).columns
     if len(numeric_columns) > 0:
-        plt.figure(figsize=(14, 12))  # Increased figure size for clarity
-        heatmap = sns.heatmap(
-            df[numeric_columns].corr(), 
-            annot=True, 
-            cmap="coolwarm", 
-            fmt=".2f", 
-            cbar_kws={'shrink': 0.8}
-        )
-        heatmap.set_title("Correlation Heatmap", fontsize=16, pad=20)
-        heatmap.set_xlabel("Features", fontsize=14, labelpad=20)
-        heatmap.set_ylabel("Features", fontsize=14, labelpad=20)
-        plt.xticks(fontsize=12, rotation=45, ha="right")  # Rotate and align x-axis labels
-        plt.yticks(fontsize=12)
-        plt.tight_layout(pad=3.0)  # Adjust layout
+        plt.figure(figsize=(14, 12))
+        heatmap = sns.heatmap(df[numeric_columns].corr(), annot=True, cmap="coolwarm", fmt=".2f")
+        heatmap.set_title("Correlation Heatmap")
         heatmap_file = generate_unique_filename(f"{output_prefix}_heatmap.png")
-        plt.savefig(heatmap_file, dpi=300)  # Save high-resolution image
+        plt.savefig(heatmap_file, dpi=300)
         charts.append(heatmap_file)
         plt.close()
+        print(f"Generated heatmap: {heatmap_file}") # Debugging: Print generated file path
 
-    # Example 2: Bar Plot for the first categorical column
+    # Bar Plot for the first categorical column
     categorical_columns = df.select_dtypes(include=["object"]).columns
     if len(categorical_columns) > 0:
-        plt.figure(figsize=(14, 8))  # Increased figure size
+        plt.figure(figsize=(14, 8))
         top_categories = df[categorical_columns[0]].value_counts().head(10)
-        top_categories.sort_values().plot(kind="barh", color="skyblue")  # Horizontal bar plot
-        plt.title(f"Top 10 {categorical_columns[0]} Categories", fontsize=16, pad=20)
-        plt.xlabel("Frequency", fontsize=14, labelpad=15)
-        plt.ylabel(categorical_columns[0], fontsize=14, labelpad=15)
-        plt.xticks(fontsize=12)
-        plt.yticks(fontsize=12)
-        plt.tight_layout(pad=3.0)  # Adjust layout
+        top_categories.sort_values().plot(kind="barh", color="skyblue")
+        plt.title(f"Top 10 {categorical_columns[0]} Categories")
         barplot_file = generate_unique_filename(f"{output_prefix}_barplot.png")
         plt.savefig(barplot_file, dpi=300)
         charts.append(barplot_file)
         plt.close()
+        print(f"Generated barplot: {barplot_file}") # Debugging: Print generated file path
 
     return charts
 
@@ -135,9 +145,6 @@ def generate_unique_filename(filename):
     return filename
 
 def main():
-    # Define the folder path
-    folder_path = r"C:\Users\Admin\Downloads\csv files"
-
     # Change to the specified folder
     try:
         os.chdir(folder_path)
@@ -179,3 +186,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

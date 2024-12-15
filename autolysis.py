@@ -8,7 +8,7 @@ import chardet
 
 # Constants
 API_URL = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
-AI_PROXY = "your_api_key_here"  # Replace with your actual API key
+AI_PROXY = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZHMxMDAwMDIzQGRzLnN0dWR5LmlpdG0uYWMuaW4ifQ.VMgtIn9WJmqsIyfZ9k0Y69-a-UaK0XjB8Cgj5MsuC8Y"  # Replace with your actual API key
 
 def load_data(file_path):
     """Load CSV data with encoding detection."""

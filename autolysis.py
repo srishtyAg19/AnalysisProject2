@@ -10,10 +10,6 @@ from scipy import stats  # Importing scipy for any advanced statistical function
 from datetime import datetime  # Importing datetime to generate unique filenames
 from dotenv import load_dotenv  # Importing load_dotenv for environment variable handling
 
-# Use your token directly
-api_proxy_token = "YOUR_API_PROXY_TOKEN"
-api_proxy_base_url = "https://aiproxy.sanand.workers.dev/"
-
 def read_csv(filename):
     """Read the CSV file and return a DataFrame."""
     try:
@@ -190,5 +186,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

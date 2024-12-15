@@ -8,14 +8,21 @@ import chardet
 
 # Constants
 API_URL = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
-AI_PROXY = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjIwMDU1OTdAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.mGtFocaNamOEpoh3Y6WUB-xoAJJzW3EQntzLwbHUSXg"
+AI_PROXY = "your_api_key_here"  # Replace with your actual API key
 
 def load_data(file_path):
     """Load CSV data with encoding detection."""
-    with open(file_path, 'rb') as f:
-        result = chardet.detect(f.read())
-    encoding = result['encoding']
-    return pd.read_csv(file_path, encoding=encoding)
+    try:
+        with open(file_path, 'rb') as f:
+            result = chardet.detect(f.read())
+        encoding = result['encoding']
+        return pd.read_csv(file_path, encoding=encoding)
+    except FileNotFoundError:
+        print(f"File {file_path} not found.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error loading file {file_path}: {e}")
+        sys.exit(1)
 
 def analyze_data(df):
     """Perform basic data analysis."""

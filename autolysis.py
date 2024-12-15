@@ -11,7 +11,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # Define the folder path (update if needed)
-folder_path = r"/content/csv_files"  
+folder_path = r"C:\Users\Admin\Downloads\Analysis"  
 
 # Define the .env file path
 dotenv_path = os.path.join(folder_path, "myfile.env")

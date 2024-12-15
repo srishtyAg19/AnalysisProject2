@@ -78,7 +78,7 @@ def visualize_data(df, output_prefix):
 
     return charts
 
-def narrate_story(analysis, charts, filename):
+def narrate_story(analysis, charts, filename, api_proxy_token, api_proxy_base_url):
     """Use GPT-4o-Mini to narrate a story about the analysis."""
     summary_prompt = f"""
     I analyzed a dataset from {filename}. It has the following details:
@@ -173,7 +173,7 @@ def main():
         charts = visualize_data(df, output_prefix)
         
         # Narrate story
-        story = narrate_story(analysis, charts, filename)
+        story = narrate_story(analysis, charts, filename, api_proxy_token, api_proxy_base_url)
         
         # Save README.md
         readme_file = generate_unique_filename(f"README_{output_prefix}.md")
